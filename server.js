@@ -9,6 +9,8 @@ app.use(express.json());
 app.get("/", (req, res) =>{
     res.send("Hello world")
     res.send("Tabibito")
+    res.send("Cabase")
+    res.send("Auditor")
 })
 
 
