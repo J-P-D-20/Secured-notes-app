@@ -8,6 +8,10 @@ app.use(express.json());
 
 app.get("/", (req, res) =>{
     res.send("Hello world")
+<<<<<<< HEAD
+=======
+    res.send("Cabase")
+>>>>>>> f00e2fc3d9ec3387ec987e58b0c79ae8bd362d2b
     res.send("Auditor")
 })
 
