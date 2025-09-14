@@ -11,6 +11,7 @@ app.get("/", (req, res) =>{
     res.send("Tabibito")
     res.send("Cabase")
     res.send("Auditor")
+    res.send("Aguillas")
 })
 
 
