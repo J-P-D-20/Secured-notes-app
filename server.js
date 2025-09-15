@@ -12,6 +12,7 @@ app.get("/", (req, res) =>{
     res.send("Cabase")
     res.send("Auditor")
     res.send("Aguillas")
+    res.send("Hi Jhom")
 })
 
 
