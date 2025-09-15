@@ -24,12 +24,6 @@ app.post('/registration' , async (req,res) => {
     res.send("Account Created Successfully")
 })
 
-
-
-
-
-
-
 const listen = () =>{
     const PORT = 3000
     app.listen(PORT, () =>{
