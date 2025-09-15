@@ -1,3 +1,4 @@
+import { register } from './backend.js';
 import express from 'express'
 import bcrypt from 'bcrypt';
 
@@ -5,23 +6,21 @@ import bcrypt from 'bcrypt';
 const app = express();
 app.use(express.json());
 
-const user = [
-
-]
 
 
 app.post('/registration' , async (req,res) => {
+    try{
     const {username,password,role} = req.body;
-    const hash = await bcrypt.hash(password, 13);
+    const hashedPassword = await bcrypt.hash(password, 13);
 
-    user.push({
-        username,
-        password: hash,
-        role
-    })
+    const saveUser = await register(username,hashedPassword,role);
 
-    console.log(user);
-    res.send("Account Created Successfully")
+    console.log(saveUser);
+    res.status(200).send("Account Created Successfully")
+    } catch (err) {
+        console.error("Registration Error",err);
+        res.status(500).send("registration error");
+    }
 })
 
 const listen = () =>{
@@ -30,5 +29,5 @@ const listen = () =>{
         console.log(`server is listening to port: ${PORT}`)
     })
 }
-
+ 
 listen();
