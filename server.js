@@ -16,6 +16,7 @@ app.post('/registration' , async (req,res) => {
     const saveUser = await register(username,hashedPassword,role);
 
     console.log(saveUser);
+    conso
     res.status(200).send("Account Created Successfully")
     } catch (err) {
         console.error("Registration Error",err);

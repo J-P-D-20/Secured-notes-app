@@ -40,7 +40,7 @@ export async function writeNote(username,title,content) {
         }catch(err){
             if(err.code !== "ENOENT") throw err
         }
-
+        
         const user = users.find(u => u.username === username);
         if(!user){
             console.log(`user: ${username} not found`);
