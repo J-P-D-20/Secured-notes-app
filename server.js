@@ -1,4 +1,4 @@
-import { register } from './backend.js';
+import { register,writeNote } from './backend.js';
 import express from 'express'
 import bcrypt from 'bcrypt';
 import rateLimit from 'express-rate-limit';
@@ -52,6 +52,18 @@ process.on('SIGINT', () => {
     console.log("\nGracefully shutting down the server...");
     process.exit(0);
 });
+
+app.post('/writeNote', async (req,res) =>{
+    try{
+        const {username,title,content} = req.body;
+
+        await writeNote(username,title,content);
+
+        res.status(200).send("Note saved Successfully");
+    } catch (err){
+        console.error("error saving note", err);
+    }
+})
 
 const listen = () =>{
     const PORT = 3000

@@ -2,7 +2,23 @@
   {
     "username": "jhomary",
     "password": "$2b$13$PrprDZxvOpfmnSjc7hNpK.c0/qsSsXSrigK60BKAdqYA9P1I6FxV2",
-    "role": "admin"
+    "role": "admin",
+    "note": [
+      {
+        "title": "test",
+        "content": "Pa gradwita ko pls man",
+        "date": "2025-09-16T08:10:23.825Z"
+      },
+      {
+        "title": "test1",
+        "content": "uwu",
+        "date": "2025-09-16T08:10:44.240Z"
+      }
+    ]
+  },
+  {
+    "username": "boots",
+    "password": "$2b$13$aKO4Whtr3mvQelxRJ5QWTOs5Ll8igkH2pNqjC14popbDHKEPgsSqi"
   },
   {
     "username": "tester01",
