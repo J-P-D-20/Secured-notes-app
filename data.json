@@ -19,5 +19,10 @@
   {
     "username": "boots",
     "password": "$2b$13$aKO4Whtr3mvQelxRJ5QWTOs5Ll8igkH2pNqjC14popbDHKEPgsSqi"
+  },
+  {
+    "username": "tester01",
+    "password": "$2b$13$v0PG3UpW0J82HGHhJ0CR2ufWZp3EvdYgzf6OUyN1W5caHxWDBZG4W",
+    "role": "user"
   }
 ]

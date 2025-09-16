@@ -1,22 +1,45 @@
 import { register,writeNote } from './backend.js';
 import express from 'express'
 import bcrypt from 'bcrypt';
+<<<<<<< HEAD
 import fs from 'fs/promises';
 import jwt from 'jsonwebtoken';
 
+=======
+import rateLimit from 'express-rate-limit';
+>>>>>>> a8787e95d6f746e99b58e0ef5d352c3728398b71
 
 
 
 const app = express();
 app.use(express.json());
 
+<<<<<<< HEAD
 // JWT Secret keys (use environment variables in production)
 const JWT_SECRET = process.env.ACCESS_TOKEN_SECRET || 'fallback-secret';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'fallback-refresh-secret';
 
 // Temporary storage for refresh tokens (for production, store securely)
 let refreshTokens = [];
+=======
+// ✅ Availability Feature 1: Rate Limiting
+const limiter = rateLimit({
+    windowMs: 1 * 60 * 1000, 
+    max: 50, 
+    message: { error: "Too many requests. Please slow down and try again later." }
+});
+>>>>>>> a8787e95d6f746e99b58e0ef5d352c3728398b71
 
+app.use(limiter);
+
+// ✅ Availability Feature 2: Health Check Endpoint
+app.get('/status', (req, res) => {
+    res.status(200).json({
+        status: "OK",
+        uptime: `${process.uptime().toFixed(2)} seconds`,
+        timestamp: new Date().toISOString()
+    });
+});
 
 app.post('/registration' , async (req,res) => {
     try{
@@ -33,6 +56,7 @@ app.post('/registration' , async (req,res) => {
     }
 })
 
+<<<<<<< HEAD
 //LOGIN
 app.post('/login', async (req, res) => {
     try {
@@ -86,6 +110,18 @@ app.post('/token', (req, res) => {
         const accessToken = jwt.sign({ name: user.name }, ACCESS_TOKEN_SECRET, { expiresIn: '10s' });
         res.json({ accessToken });
     });
+=======
+// ✅ Availability Feature 3: Global Error Handler
+app.use((err, req, res, next) => {
+    console.error("Unexpected Error:", err.message);
+    res.status(500).json({ error: "Internal Server Error. Please try again later." });
+});
+
+// ✅ Availability Feature 4: Graceful Shutdown
+process.on('SIGINT', () => {
+    console.log("\nGracefully shutting down the server...");
+    process.exit(0);
+>>>>>>> a8787e95d6f746e99b58e0ef5d352c3728398b71
 });
 
 app.post('/writeNote', async (req,res) =>{
