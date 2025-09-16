@@ -1,4 +1,4 @@
-import { register } from './backend.js';
+import { register,writeNote } from './backend.js';
 import express from 'express'
 import bcrypt from 'bcrypt';
 
@@ -20,6 +20,18 @@ app.post('/registration' , async (req,res) => {
     } catch (err) {
         console.error("Registration Error",err);
         res.status(500).send("registration error");
+    }
+})
+
+app.post('/writeNote', async (req,res) =>{
+    try{
+        const {username,title,content} = req.body;
+
+        await writeNote(username,title,content);
+
+        res.status(200).send("Note saved Successfully");
+    } catch (err){
+        console.error("error saving note", err);
     }
 })
 
