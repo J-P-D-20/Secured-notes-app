@@ -103,6 +103,8 @@ app.post('/token', (req, res) => {
         const accessToken = jwt.sign({ name: user.name }, ACCESS_TOKEN_SECRET, { expiresIn: '10s' });
         res.json({ accessToken });
     });
+});
+
 // ✅ Availability Feature 3: Global Error Handler
 app.use((err, req, res, next) => {
     console.error("Unexpected Error:", err.message);
