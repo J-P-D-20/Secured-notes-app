@@ -1,4 +1,8 @@
 import {promises as fs} from 'fs';
+import {generateChecksum} from './integrity.js';
+import {verifyChecksum} from './integrity.js';
+import { logEvent } from './auditlogger.js';
+import { log } from 'console';
 
 
 //creating account
@@ -20,6 +24,7 @@ export async function register(username,password,role) {
     await fs.writeFile(filepath, JSON.stringify(users,null,2))
     
     console.log("User saved succesfully");
+    logEvent(username, 'REGISTERED', 'Account Created');
     return newUser;
     } catch (err){
         console.error("error saving file", err);
@@ -53,6 +58,7 @@ export async function writeNote(username,title,content) {
         const newNote = {
             title,
             content,
+            checksum: generateChecksum(content),
             date : new Date().toISOString()
         }
 
@@ -61,6 +67,7 @@ export async function writeNote(username,title,content) {
         await fs.writeFile(filepath,JSON.stringify(users,null,2));
 
         console.log(`Note successfully saved for ${username}`);
+        logEvent(username, 'CREATED', 'Note Created');
         return newNote;
 
     } catch (err) {
