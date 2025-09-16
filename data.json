@@ -19,21 +19,5 @@
   {
     "username": "boots",
     "password": "$2b$13$aKO4Whtr3mvQelxRJ5QWTOs5Ll8igkH2pNqjC14popbDHKEPgsSqi"
-  },
-  {
-    "username": "alexia",
-    "password": "$2b$13$b4w1ic7iyxyJzvsk6Z42eO8.Rd.j0Tu2xnguPwqYXbz04u3/xKuDG",
-    "role": "user",
-    "note": [
-      {
-        "title": "testing",
-        "content": "Hello World",
-        "checksum": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e",
-        "date": "2025-09-16T09:53:04.059Z"
-      }
-    ]
-    "username": "tester01",
-    "password": "$2b$13$v0PG3UpW0J82HGHhJ0CR2ufWZp3EvdYgzf6OUyN1W5caHxWDBZG4W",
-    "role": "user"
   }
 ]
