@@ -1,15 +1,5 @@
-<<<<<<< HEAD
-import { register,writeNote} from './backend.js';
-import {getAllNotes,deleteUser} from './admin.js'
-=======
-<<<<<<< HEAD
-import { register,writeNote } from './backend.js';
-=======
-import { register,writeNote, readFile } from './backend.js';
-import { register,writeNote } from './backend.js';
-import { updateNote, deleteNote } from './backend.js';
->>>>>>> 3cd9627 (updates the readfile)
->>>>>>> 2b0ee0cd829a9180b48233b38fd63dddd982d084
+import { register, writeNote, readFile, updateNote, deleteNote } from './backend.js';
+import { getAllNotes, deleteUser } from './admin.js';
 import express from 'express'
 import bcrypt from 'bcrypt';
 import fs from 'fs/promises';
@@ -25,7 +15,6 @@ app.use(express.json());
 // JWT Secret keys (use environment variables in production)
 const JWT_SECRET = process.env.ACCESS_TOKEN_SECRET || 'fallback-secret';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'fallback-refresh-secret';
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || JWT_SECRET;
 
 // Temporary storage for refresh tokens (for production, store securely)
 let refreshTokens = [];
@@ -47,9 +36,7 @@ app.get('/status', (req, res) => {
     });
 });
 
-<<<<<<< HEAD
 //registration
-=======
 // READ NOTES (auth required). Users can only read their own; admins can read any.
 // GET /notes?username={username}&title={optionalTitle}
 app.get('/notes', authenticateToken, async (req, res) => {
@@ -90,7 +77,6 @@ app.get('/notes', authenticateToken, async (req, res) => {
     }
 });
 
->>>>>>> 2b0ee0cd829a9180b48233b38fd63dddd982d084
 app.post('/registration' , async (req,res) => {
     try{
     const {username,password,role} = req.body;
@@ -173,11 +159,7 @@ app.post('/token', (req, res) => {
 
     jwt.verify(token, REFRESH_TOKEN_SECRET, (err, user) => {
         if (err) return res.sendStatus(403);
-<<<<<<< HEAD
         const accessToken = jwt.sign({ username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
-=======
-        const accessToken = jwt.sign({ name: user.name }, ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
->>>>>>> 2b0ee0cd829a9180b48233b38fd63dddd982d084
         res.json({ accessToken });
     });
 });
