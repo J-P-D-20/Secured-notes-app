@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 import { register,writeNote } from './backend.js';
+=======
+import { register,writeNote, readFile } from './backend.js';
+import { register,writeNote } from './backend.js';
+import { updateNote, deleteNote } from './backend.js';
+>>>>>>> 3cd9627 (updates the readfile)
 import express from 'express'
 import bcrypt from 'bcrypt';
 import fs from 'fs/promises';
