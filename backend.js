@@ -67,8 +67,8 @@ export async function writeNote(username,title,content) {
         await fs.writeFile(filepath,JSON.stringify(users,null,2));
 
         console.log(`Note successfully saved for ${username}`);
-        logEvent(username, 'CREATED', 'Note Created');
-        return newNote;
+        logEvent(username, 'CREATED', `Note "${title}" created`);
+        return newNote; 
 
     } catch (err) {
         console.error("Unable to save note: ", err);
