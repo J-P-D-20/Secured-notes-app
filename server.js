@@ -15,6 +15,7 @@ app.use(express.json());
 const JWT_SECRET = process.env.ACCESS_TOKEN_SECRET || 'fallback-secret';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'fallback-refresh-secret';
 
+<<<<<<< HEAD
 // Temporary storage for refresh tokens (for production, store securely)
 let refreshTokens = [];
 // ✅ Availability Feature 1: Rate Limiting
@@ -48,6 +49,14 @@ app.post('/registration' , async (req,res) => {
         console.error("Registration Error",err);
         res.status(500).send("registration error");
     }
+=======
+app.get("/", (req, res) =>{
+    res.send("Hello world")
+    res.send("Cabase")
+    res.send("Auditor")
+    res.send("Tabibito has arrived!")
+
+>>>>>>> arrubio
 })
 
 //LOGIN
