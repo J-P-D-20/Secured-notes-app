@@ -132,8 +132,6 @@ export async function writeNote(username,title,content) {
     }
 }
 
-<<<<<<< HEAD
-=======
 //updating note
 export async function updateNote(username, title, newContent) {
     const filepath = './data.json';
@@ -210,4 +208,3 @@ export async function deleteNote(username, title) {
         return false;
     }
 }
->>>>>>> 2b0ee0cd829a9180b48233b38fd63dddd982d084
