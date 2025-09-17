@@ -8,6 +8,7 @@
         "title": "test",
         "content": "Pa gradwita ko pls man",
         "date": "2025-09-16T08:10:23.825Z"
+<<<<<<< HEAD
       },
       {
         "title": "test1",
@@ -19,6 +20,8 @@
         "content": "GAGAGAGAGAGAAHAHAHAHAHAA",
         "checksum": "d9ee532d7acb6a649decb19b54811e77edcd4506887ba90dc326248a4f6fb158",
         "date": "2025-09-17T07:14:50.236Z"
+=======
+>>>>>>> 2b0ee0cd829a9180b48233b38fd63dddd982d084
       }
     ]
   }

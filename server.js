@@ -1,5 +1,15 @@
+<<<<<<< HEAD
 import { register,writeNote} from './backend.js';
 import {getAllNotes,deleteUser} from './admin.js'
+=======
+<<<<<<< HEAD
+import { register,writeNote } from './backend.js';
+=======
+import { register,writeNote, readFile } from './backend.js';
+import { register,writeNote } from './backend.js';
+import { updateNote, deleteNote } from './backend.js';
+>>>>>>> 3cd9627 (updates the readfile)
+>>>>>>> 2b0ee0cd829a9180b48233b38fd63dddd982d084
 import express from 'express'
 import bcrypt from 'bcrypt';
 import fs from 'fs/promises';
@@ -15,6 +25,7 @@ app.use(express.json());
 // JWT Secret keys (use environment variables in production)
 const JWT_SECRET = process.env.ACCESS_TOKEN_SECRET || 'fallback-secret';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'fallback-refresh-secret';
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || JWT_SECRET;
 
 // Temporary storage for refresh tokens (for production, store securely)
 let refreshTokens = [];
@@ -36,7 +47,50 @@ app.get('/status', (req, res) => {
     });
 });
 
+<<<<<<< HEAD
 //registration
+=======
+// READ NOTES (auth required). Users can only read their own; admins can read any.
+// GET /notes?username={username}&title={optionalTitle}
+app.get('/notes', authenticateToken, async (req, res) => {
+    try {
+        const { username: requestedUsername, title } = req.query;
+        const requester = req.user; // { username, role }
+
+        // Determine effective username scope
+        let username = requestedUsername || requester.username;
+
+        // If requester is not admin, they can only access their own notes
+        if (requester.role !== 'admin' && username !== requester.username) {
+            return res.status(403).json({ error: 'Forbidden: cannot access other users\' notes' });
+        }
+
+        const result = await readFile('./data.json', 'utf-8', username || null, title || null);
+
+        // If username and title were provided but nothing found
+        if (username && title && !result) {
+            return res.status(404).json({ error: 'Note not found for specified user/title' });
+        }
+
+        // Admin without username: return all users
+        if (!requestedUsername && requester.role === 'admin' && !title) {
+            return res.json({ users: result });
+        }
+
+        // If only username is provided, return that user's notes (array)
+        if (username && !title) {
+            return res.json({ username, notes: result || [] });
+        }
+
+        // username + title returns a single note object
+        return res.json({ username, title, note: result });
+    } catch (err) {
+        console.error('Error reading notes:', err);
+        return res.status(500).json({ error: 'Failed to read notes' });
+    }
+});
+
+>>>>>>> 2b0ee0cd829a9180b48233b38fd63dddd982d084
 app.post('/registration' , async (req,res) => {
     try{
     const {username,password,role} = req.body;
@@ -119,7 +173,11 @@ app.post('/token', (req, res) => {
 
     jwt.verify(token, REFRESH_TOKEN_SECRET, (err, user) => {
         if (err) return res.sendStatus(403);
+<<<<<<< HEAD
         const accessToken = jwt.sign({ username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
+=======
+        const accessToken = jwt.sign({ name: user.name }, ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
+>>>>>>> 2b0ee0cd829a9180b48233b38fd63dddd982d084
         res.json({ accessToken });
     });
 });
@@ -185,6 +243,20 @@ app.post('/deleteUser', authenticateToken,authorizeRole('admin'), async (req,res
         console.error("error deletin user: ", err)
     }
 })
+
+app.put('/notes', async (req, res) => {
+    const { username, title, newContent } = req.body;
+    const updated = await updateNote(username, title, newContent);
+    if (updated) res.json({ message: "Note updated successfully", updated });
+    else res.status(404).json({ error: "Note not found" });
+});
+
+app.delete('/notes', async (req, res) => {
+    const { username, title } = req.body;
+    const deleted = await deleteNote(username, title);
+    if (deleted) res.json({ message: "Note deleted successfully" });
+    else res.status(404).json({ error: "Note not found" });
+});
 
 const listen = () =>{
     const PORT = 3000
