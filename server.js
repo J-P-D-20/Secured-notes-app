@@ -1,5 +1,4 @@
 import { register,writeNote } from './backend.js';
-import { updateNote, deleteNote } from './backend.js';
 import express from 'express'
 import bcrypt from 'bcrypt';
 import fs from 'fs/promises';
@@ -15,8 +14,8 @@ app.use(express.json());
 // JWT Secret keys (use environment variables in production)
 const JWT_SECRET = process.env.ACCESS_TOKEN_SECRET || 'fallback-secret';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'fallback-refresh-secret';
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || JWT_SECRET;
 
-<<<<<<< HEAD
 // Temporary storage for refresh tokens (for production, store securely)
 let refreshTokens = [];
 // ✅ Availability Feature 1: Rate Limiting
@@ -37,6 +36,46 @@ app.get('/status', (req, res) => {
     });
 });
 
+// READ NOTES (auth required). Users can only read their own; admins can read any.
+// GET /notes?username={username}&title={optionalTitle}
+app.get('/notes', authenticateToken, async (req, res) => {
+    try {
+        const { username: requestedUsername, title } = req.query;
+        const requester = req.user; // { username, role }
+
+        // Determine effective username scope
+        let username = requestedUsername || requester.username;
+
+        // If requester is not admin, they can only access their own notes
+        if (requester.role !== 'admin' && username !== requester.username) {
+            return res.status(403).json({ error: 'Forbidden: cannot access other users\' notes' });
+        }
+
+        const result = await readFile('./data.json', 'utf-8', username || null, title || null);
+
+        // If username and title were provided but nothing found
+        if (username && title && !result) {
+            return res.status(404).json({ error: 'Note not found for specified user/title' });
+        }
+
+        // Admin without username: return all users
+        if (!requestedUsername && requester.role === 'admin' && !title) {
+            return res.json({ users: result });
+        }
+
+        // If only username is provided, return that user's notes (array)
+        if (username && !title) {
+            return res.json({ username, notes: result || [] });
+        }
+
+        // username + title returns a single note object
+        return res.json({ username, title, note: result });
+    } catch (err) {
+        console.error('Error reading notes:', err);
+        return res.status(500).json({ error: 'Failed to read notes' });
+    }
+});
+
 app.post('/registration' , async (req,res) => {
     try{
     const {username,password,role} = req.body;
@@ -50,14 +89,6 @@ app.post('/registration' , async (req,res) => {
         console.error("Registration Error",err);
         res.status(500).send("registration error");
     }
-=======
-app.get("/", (req, res) =>{
-    res.send("Hello world")
-    res.send("Cabase")
-    res.send("Auditor")
-    res.send("Tabibito has arrived!")
-
->>>>>>> arrubio
 })
 
 //LOGIN
@@ -110,7 +141,7 @@ app.post('/token', (req, res) => {
 
     jwt.verify(token, REFRESH_TOKEN_SECRET, (err, user) => {
         if (err) return res.sendStatus(403);
-        const accessToken = jwt.sign({ name: user.name }, ACCESS_TOKEN_SECRET, { expiresIn: '10s' });
+        const accessToken = jwt.sign({ name: user.name }, ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
         res.json({ accessToken });
     });
 });
