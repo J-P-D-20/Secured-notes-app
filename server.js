@@ -1,4 +1,5 @@
 import { register,writeNote } from './backend.js';
+import { updateNote, deleteNote } from './backend.js';
 import express from 'express'
 import bcrypt from 'bcrypt';
 import fs from 'fs/promises';
@@ -128,6 +129,20 @@ app.post('/writeNote', async (req,res) =>{
         console.error("error saving note", err);
     }
 })
+
+app.put('/notes', async (req, res) => {
+    const { username, title, newContent } = req.body;
+    const updated = await updateNote(username, title, newContent);
+    if (updated) res.json({ message: "Note updated successfully", updated });
+    else res.status(404).json({ error: "Note not found" });
+});
+
+app.delete('/notes', async (req, res) => {
+    const { username, title } = req.body;
+    const deleted = await deleteNote(username, title);
+    if (deleted) res.json({ message: "Note deleted successfully" });
+    else res.status(404).json({ error: "Note not found" });
+});
 
 const listen = () =>{
     const PORT = 3000
