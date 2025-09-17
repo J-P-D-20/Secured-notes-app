@@ -1,9 +1,10 @@
-import { register,writeNote } from './backend.js';
+import { register,writeNote} from './backend.js';
+import {getAllNotes,deleteUser} from './admin.js'
 import express from 'express'
 import bcrypt from 'bcrypt';
 import fs from 'fs/promises';
 import jwt from 'jsonwebtoken';
-
+import { readLogs } from './auditlogger.js';
 import rateLimit from 'express-rate-limit';
 
 
@@ -41,10 +42,15 @@ app.post('/registration' , async (req,res) => {
     const {username,password,role} = req.body;
     const hashedPassword = await bcrypt.hash(password, 13);
 
+    const data = await fs.readFile('./data.json', 'utf-8');
+    const users = JSON.parse(data);
+    if (users.find(u => u.username === username)) {
+    return res.status(400).send("Username already exists");
+}
+
     const saveUser = await register(username,hashedPassword,role);
 
     console.log(saveUser);
-    conso
     res.status(200).send("Account Created Successfully")
     } catch (err) {
         console.error("Registration Error",err);
@@ -74,6 +80,7 @@ app.post('/login', async (req, res) => {
             { expiresIn: "1h" }
         );
 
+    
         res.json({ token });
     } catch (err) {
         console.error("Login Error", err);
@@ -95,6 +102,16 @@ function authenticateToken(req, res, next) {
     });
 }
 
+//Admin Checker
+function authorizeRole(role){
+    return(req,res,next) =>{
+        if(req.user.role !== role){
+            return res.sendStatus(403);
+        }
+        next();
+    }
+}
+
 app.post('/token', (req, res) => {
     const { token } = req.body;
     if (!token) return res.sendStatus(401);
@@ -102,7 +119,7 @@ app.post('/token', (req, res) => {
 
     jwt.verify(token, REFRESH_TOKEN_SECRET, (err, user) => {
         if (err) return res.sendStatus(403);
-        const accessToken = jwt.sign({ name: user.name }, ACCESS_TOKEN_SECRET, { expiresIn: '10s' });
+        const accessToken = jwt.sign({ username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
         res.json({ accessToken });
     });
 });
@@ -119,15 +136,53 @@ process.on('SIGINT', () => {
     process.exit(0);
 });
 
-app.post('/writeNote', async (req,res) =>{
+app.post('/writeNote', authenticateToken ,async (req,res) =>{
     try{
-        const {username,title,content} = req.body;
+        const username = req.user.username;
+        const {title,content} = req.body;
 
         await writeNote(username,title,content);
 
         res.status(200).send("Note saved Successfully");
     } catch (err){
         console.error("error saving note", err);
+        res.status(500).send("Error saving note");
+    }
+})
+
+//ADMIN FUNCTION PREVILIGES
+
+//VIEW ALL NOTES
+app.get('/getAllNotes', authenticateToken, authorizeRole('admin'), async (req,res) =>{
+    try{
+         const notes = await getAllNotes();
+         res.status(200).send(notes);
+    } catch (err){
+        res.status(500).send("Error retrieving notes");
+    }
+})
+
+
+//VIEW LOGS
+app.get('/viewLogs',authenticateToken,authorizeRole('admin'), async (req,res) =>{
+    try{
+        const logs = await readLogs();
+        res.status(200).send(logs);
+    } catch (err){
+        res.status(500).send("Error viewing logs");
+        console.error("Error viewing logs",err)
+    }
+})
+
+//DELETE USER 
+app.post('/deleteUser', authenticateToken,authorizeRole('admin'), async (req,res) =>{
+    try{
+        const {username} = req.body;
+        await deleteUser(username);
+        res.status(200).send(`User ${username} deleted successfully`);
+    } catch(err){
+        res.status(500).send("Error deleting user");
+        console.error("error deletin user: ", err)
     }
 })
 

@@ -37,7 +37,6 @@ export async function writeNote(username,title,content) {
     try{
         let users = [];
         try{
-
         const data = await fs.readFile(filepath, 'utf-8');
 
         users = JSON.parse(data);
@@ -59,7 +58,7 @@ export async function writeNote(username,title,content) {
             title,
             content,
             checksum: generateChecksum(content),
-            date : new Date().toISOString()
+            date : new Date().toISOString().split("T")[0]
         }
 
         user.note.push(newNote);
@@ -74,3 +73,4 @@ export async function writeNote(username,title,content) {
         console.error("Unable to save note: ", err);
     }
 }
+
