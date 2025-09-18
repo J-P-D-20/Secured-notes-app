@@ -1,8 +1,8 @@
 import {promises as fs} from 'fs';
 import {generateChecksum} from './integrity.js';
 import {verifyChecksum} from './integrity.js';
-import { logEvent } from './auditlogger.js';
-import { log } from 'console';
+import { logEvent } from './auditLogger.js';
+
 
 //readFile function with user and note validation
 export async function readFile(filepath, encoding = 'utf-8', username = null, title = null) {

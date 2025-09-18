@@ -4,7 +4,7 @@ import express from 'express'
 import bcrypt from 'bcrypt';
 import fs from 'fs/promises';
 import jwt from 'jsonwebtoken';
-import { readLogs } from './auditlogger.js';
+import { readLogs,logEvent } from './auditLogger.js';
 import rateLimit from 'express-rate-limit';
 
 
@@ -233,7 +233,14 @@ app.post('/writeNote', authenticateToken ,async (req,res) =>{
 })
 
 //ADMIN FUNCTION PREVILIGES
-
+function authorizeRole(role){
+    return(req,res,next) =>{
+        if(req.user.role !== role){
+            return res.sendStatus(403);
+        }
+        next();
+    }
+}
 //VIEW ALL NOTES
 app.get('/getAllNotes', authenticateToken, authorizeRole('admin'), async (req,res) =>{
     try{
@@ -287,8 +294,9 @@ app.put('/notes', authenticateToken, async (req, res) => {
     }
 });
 
-app.delete('/notes', async (req, res) => {
-    const { username, title } = req.body;
+app.delete('/notes', authenticateToken, async (req, res) => {
+    const {  title } = req.body;
+    const username = req.user.username;
     const deleted = await deleteNote(username, title);
     if (deleted) {
         await logEvent(username, "DELETE_NOTE", `SUCCESS - ${title}`);

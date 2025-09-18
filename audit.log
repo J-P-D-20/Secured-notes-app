@@ -18,3 +18,19 @@
 2025-09-18 - User: jhomary, Action: UPDATED, Status: Note "test" updated
 2025-09-18 - User: boots, Action: REGISTERED, Status: Account Created
 2025-09-18 - User: jhomary, Action: UPDATED, Status: Note "test" updated
+2025-09-18 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-18 - User: jhomary, Action: NOTE_CREATED, Status: Note "dear diary 2" created
+2025-09-18 - User: jhomary, Action: WRITE_NOTE, Status: SUCCESS - dear diary 2
+2025-09-18 - User: jhomary, Action: VIEW_LOGS, Status: SUCCESS
+2025-09-18 - User: jhomary, Action: GET_ALL_NOTES, Status: SUCCESS
+2025-09-18 - User: jhomary, Action: NOTE_UPDATE_FAILED, Status: Note "test123" not found
+2025-09-18 - User: jhomary, Action: UPDATE_NOTE, Status: FAILED - test123
+2025-09-18 - User: jhomary, Action: NOTE_DELETED, Status: Note "dear diary 2" deleted
+2025-09-18 - User: jhomary, Action: DELETE_NOTE, Status: SUCCESS - dear diary 2
+2025-09-18 - User: boots, Action: LOGIN, Status: SUCCESS
+2025-09-18 - User: boots, Action: NOTE_DELETE_FAILED, Status: No notes for user
+2025-09-18 - User: boots, Action: DELETE_NOTE, Status: FAILED - dear diary 2
+2025-09-18 - User: boots, Action: NOTE_DELETE_FAILED, Status: No notes for user
+2025-09-18 - User: boots, Action: DELETE_NOTE, Status: FAILED - dear diary
+2025-09-18 - User: boots, Action: NOTE_DELETE_FAILED, Status: No notes for user
+2025-09-18 - User: boots, Action: DELETE_NOTE, Status: FAILED - test1
