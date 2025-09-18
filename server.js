@@ -176,6 +176,17 @@ async function authenticateToken(req, res, next) {
     });
 }
 
+
+//Admin Checker
+function authorizeRole(role){
+    return(req,res,next) =>{
+        if(req.user.role !== role){
+            return res.sendStatus(403);
+        }
+        next();
+    }
+}
+
 app.post('/token', (req, res) => {
     const { token } = req.body;
     if (!token) return res.sendStatus(401);
