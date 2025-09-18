@@ -49,6 +49,7 @@ app.get('/notes', authenticateToken, async (req, res) => {
 
         // If requester is not admin, they can only access their own notes
         if (requester.role !== 'admin' && username !== requester.username) {
+            await logEvent(requester.username, "READ_NOTES", "FAILED - Unauthorized access attempt");
             return res.status(403).json({ error: 'Forbidden: cannot access other users\' notes' });
         }
 
@@ -56,10 +57,12 @@ app.get('/notes', authenticateToken, async (req, res) => {
 
         // If username and title were provided but nothing found
         if (username && title && !result) {
+            await logEvent(username, "READ_NOTE", `FAILED - Note "${title}" not found`);
             return res.status(404).json({ error: 'Note not found for specified user/title' });
         }
 
         // Admin without username: return all users
+        await logEvent(username, "READ_NOTES", "SUCCESS");
         if (!requestedUsername && requester.role === 'admin' && !title) {
             return res.json({ users: result });
         }
@@ -73,6 +76,7 @@ app.get('/notes', authenticateToken, async (req, res) => {
         return res.json({ username, title, note: result });
     } catch (err) {
         console.error('Error reading notes:', err);
+        await logEvent("SYSTEM", "READ_NOTES", `FAILED - ${err.message}`);
         return res.status(500).json({ error: 'Failed to read notes' });
     }
 });
@@ -85,15 +89,18 @@ app.post('/registration' , async (req,res) => {
     const data = await fs.readFile('./data.json', 'utf-8');
     const users = JSON.parse(data);
     if (users.find(u => u.username === username)) {
-    return res.status(400).send("Username already exists");
+        await logEvent(username, "REGISTER", "FAILED - Username exists");
+        return res.status(400).send("Username already exists");
 }
 
     const saveUser = await register(username,hashedPassword,role);
+    await logEvent(username, "REGISTER", "SUCCESS");
 
     console.log(saveUser);
     res.status(200).send("Account Created Successfully")
     } catch (err) {
         console.error("Registration Error",err);
+        await logEvent(req.body.username || "UNKNOWN", "REGISTER", `FAILED - ${err.message}`);
         res.status(500).send("registration error");
     }
 });
@@ -108,10 +115,16 @@ app.post('/login', async (req, res) => {
         const users = JSON.parse(data);  
         const user = users.find(u => u.username === username);
 
-        if (!user) return res.status(400).send("User not found");
+        if (!user) {
+            await logEvent(username, "LOGIN", "FAILED - User not found");
+            return res.status(400).send("User not found");
+        }
 
         const match = await bcrypt.compare(password, user.password);
-        if (!match) return res.status(400).send("Invalid password");
+        if (!match) {
+            await logEvent(username, "LOGIN", "FAILED - Wrong password");
+            return res.status(400).send("Invalid password");
+        }
 
         // Sign JWT
         const token = jwt.sign(
@@ -119,9 +132,12 @@ app.post('/login', async (req, res) => {
             JWT_SECRET,
             { expiresIn: "1h" }
         );    
+
+        await logEvent(username, "LOGIN", "SUCCESS");
         res.json({ token });
     } catch (err) {
         console.error("Login Error", err);
+        await logEvent(req.body.username || "UNKNOWN", "LOGIN", `FAILED - ${err.message}`);
         res.status(500).send("login error");
     }
 });
@@ -132,9 +148,11 @@ app.post('/logout', authenticateToken, async (req, res) => {
         blacklist.push(req.token);
         await saveBlacklist(blacklist);
 
+        await logEvent(req.user.username, "LOGOUT", "SUCCESS");
         res.status(200).json({ message: "Logged out successfully" });
     } catch (err) {
         console.error("Logout Error:", err);
+        await logEvent(req.user?.username || "UNKNOWN", "LOGOUT", `FAILED - ${err.message}`);
         res.status(500).json({ error: "Failed to logout" });
     }
 });
@@ -204,10 +222,12 @@ app.post('/writeNote', authenticateToken ,async (req,res) =>{
         const {title,content} = req.body;
 
         await writeNote(username,title,content);
+        await logEvent(username, "WRITE_NOTE", `SUCCESS - ${title}`);
 
         res.status(200).send("Note saved Successfully");
     } catch (err){
         console.error("error saving note", err);
+        await logEvent(req.user.username, "WRITE_NOTE", `FAILED - ${err.message}`);
         res.status(500).send("Error saving note");
     }
 })
@@ -218,8 +238,10 @@ app.post('/writeNote', authenticateToken ,async (req,res) =>{
 app.get('/getAllNotes', authenticateToken, authorizeRole('admin'), async (req,res) =>{
     try{
          const notes = await getAllNotes();
+         await logEvent(req.user.username, "GET_ALL_NOTES", "SUCCESS");
          res.status(200).send(notes);
     } catch (err){
+        await logEvent(req.user.username, "GET_ALL_NOTES", `FAILED - ${err.message}`);
         res.status(500).send("Error retrieving notes");
     }
 })
@@ -229,8 +251,10 @@ app.get('/getAllNotes', authenticateToken, authorizeRole('admin'), async (req,re
 app.get('/viewLogs',authenticateToken,authorizeRole('admin'), async (req,res) =>{
     try{
         const logs = await readLogs();
+        await logEvent(req.user.username, "VIEW_LOGS", "SUCCESS");
         res.status(200).send(logs);
     } catch (err){
+        await logEvent(req.user.username, "VIEW_LOGS", `FAILED - ${err.message}`);
         res.status(500).send("Error viewing logs");
         console.error("Error viewing logs",err)
     }
@@ -241,8 +265,10 @@ app.post('/deleteUser', authenticateToken,authorizeRole('admin'), async (req,res
     try{
         const {username} = req.body;
         await deleteUser(username);
+        await logEvent(req.user.username, "DELETE_USER", `SUCCESS - ${username}`);
         res.status(200).send(`User ${username} deleted successfully`);
     } catch(err){
+        await logEvent(req.user.username, "DELETE_USER", `FAILED - ${err.message}`);
         res.status(500).send("Error deleting user");
         console.error("error deletin user: ", err)
     }
@@ -252,15 +278,25 @@ app.put('/notes', authenticateToken, async (req, res) => {
     const { title, newContent } = req.body;
     const username = req.user.username;
     const updated = await updateNote(username, title, newContent);
-    if (updated) res.json({ message: "Note updated successfully", updated });
-    else res.status(404).json({ error: "Note not found" });
+    if (updated) {
+        await logEvent(username, "UPDATE_NOTE", `SUCCESS - ${title}`);
+        res.json({ message: "Note updated successfully", updated });
+    } else {
+        await logEvent(username, "UPDATE_NOTE", `FAILED - ${title}`);
+        res.status(404).json({ error: "Note not found" });
+    }
 });
 
 app.delete('/notes', async (req, res) => {
     const { username, title } = req.body;
     const deleted = await deleteNote(username, title);
-    if (deleted) res.json({ message: "Note deleted successfully" });
-    else res.status(404).json({ error: "Note not found" });
+    if (deleted) {
+        await logEvent(username, "DELETE_NOTE", `SUCCESS - ${title}`);
+        res.json({ message: "Note deleted successfully" });
+    } else {
+        await logEvent(username, "DELETE_NOTE", `FAILED - ${title}`);
+        res.status(404).json({ error: "Note not found" });
+    }
 });
 
 const listen = () =>{
