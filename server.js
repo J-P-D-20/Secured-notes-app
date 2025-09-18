@@ -84,6 +84,12 @@ app.get('/notes', authenticateToken, async (req, res) => {
 app.post('/registration' , async (req,res) => {
     try{
     const {username,password,role} = req.body;
+
+    // ✅ Input validation BEFORE bcrypt or file writes
+    if (!username || !password || !role) {
+      return res.status(400).json({ error: "All fields are required." });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 13);
 
     const data = await fs.readFile('./data.json', 'utf-8');
