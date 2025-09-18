@@ -103,7 +103,7 @@ app.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // You’d normally fetch user from DB
+        
         const data = await fs.readFile('./data.json', 'utf-8');
         const users = JSON.parse(data);  
         const user = users.find(u => u.username === username);
@@ -128,19 +128,54 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Middleware to check JWT
-function authenticateToken(req, res, next) {
+app.post('/logout', authenticateToken, async (req, res) => {
+    try {
+        const blacklist = await loadBlacklist();
+        blacklist.push(req.token);
+        await saveBlacklist(blacklist);
+
+        res.status(200).json({ message: "Logged out successfully" });
+    } catch (err) {
+        console.error("Logout Error:", err);
+        res.status(500).json({ error: "Failed to logout" });
+    }
+});
+
+// Load blacklist
+async function loadBlacklist() {
+    try {
+        const data = await fs.readFile('./blacklist.json', 'utf-8');
+        return JSON.parse(data);
+    } catch (err) {
+        return [];
+    }
+}
+
+// Save blacklist
+async function saveBlacklist(blacklist) {
+    await fs.writeFile('./blacklist.json', JSON.stringify(blacklist, null, 2), 'utf-8');
+}
+
+// Middleware to check JWT + blacklist
+async function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Expect "Bearer <token>"
+    const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) return res.sendStatus(401);
 
+    const blacklist = await loadBlacklist();
+    if (blacklist.includes(token)) {
+        return res.status(403).json({ error: "Token has been logged out" });
+    }
+
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) return res.sendStatus(403);
-        req.user = user; // attach user info
+        req.user = user;
+        req.token = token; // store token for logout
         next();
     });
 }
+
 
 //Admin Checker
 function authorizeRole(role){
