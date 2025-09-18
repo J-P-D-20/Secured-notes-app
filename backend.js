@@ -4,6 +4,64 @@ import {verifyChecksum} from './integrity.js';
 import { logEvent } from './auditlogger.js';
 import { log } from 'console';
 
+//readFile function with user and note validation
+export async function readFile(filepath, encoding = 'utf-8', username = null, title = null) {
+    try {
+        const data = await fs.readFile(filepath, encoding);
+        const users = JSON.parse(data);
+        
+        // If username is provided, check if user exists
+        if (username) {
+            const user = users.find(u => u.username === username);
+            
+            if (!user) {
+                console.log(`❌ User '${username}' does not exist in data.json`);
+                return null;
+            }
+            
+            console.log(`✅ User '${username}' found in data.json`);
+            
+            // If title is provided, check if note with that title exists for the user
+            if (title && user.note) {
+                const note = user.note.find(n => n.title === title);
+                
+                if (!note) {
+                    console.log(`❌ Note with title '${title}' does not exist for user '${username}'`);
+                    return null;
+                }
+                
+                console.log(`✅ Note '${title}' found for user '${username}'`);
+                console.log(`📝 Note Content: ${note.content}`);
+                console.log(`📅 Date: ${note.date}`);
+                console.log(`🔒 Checksum: ${note.checksum}`);
+                return note;
+            }
+            
+            // If only username provided, display all notes for the user
+            if (user.note && user.note.length > 0) {
+                console.log(`📚 Notes for user '${username}':`);
+                user.note.forEach((note, index) => {
+                    console.log(`${index + 1}. Title: ${note.title}`);
+                    console.log(`   Content: ${note.content}`);
+                    console.log(`   Date: ${note.date}`);
+                    console.log(`   Checksum: ${note.checksum}`);
+                    console.log('---');
+                });
+                return user.note;
+            } else {
+                console.log(`📝 No notes found for user '${username}'`);
+                return [];
+            }
+        }
+        
+        // If no username provided, return all data
+        return users;
+    } catch (err) {
+        console.error(`Error reading file ${filepath}:`, err);
+        throw err;
+    }
+}
+
 
 //creating account
 export async function register(username,password,role) {
@@ -16,7 +74,7 @@ export async function register(username,password,role) {
         users = JSON.parse(data)
     } catch (err) { 
         if(err.code !== "ENOENT") throw err;
-    }
+        }
     let newUser = {username,password,role};
 
     users.push(newUser);
@@ -37,7 +95,6 @@ export async function writeNote(username,title,content) {
     try{
         let users = [];
         try{
-
         const data = await fs.readFile(filepath, 'utf-8');
 
         users = JSON.parse(data);
@@ -45,7 +102,7 @@ export async function writeNote(username,title,content) {
         }catch(err){
             if(err.code !== "ENOENT") throw err
         }
-
+        
         const user = users.find(u => u.username === username);
         if(!user){
             console.log(`user: ${username} not found`);
@@ -59,7 +116,7 @@ export async function writeNote(username,title,content) {
             title,
             content,
             checksum: generateChecksum(content),
-            date : new Date().toISOString()
+            date : new Date().toISOString().split("T")[0]
         }
 
         user.note.push(newNote);

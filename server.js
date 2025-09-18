@@ -1,10 +1,10 @@
-import { register,writeNote } from './backend.js';
-import { updateNote, deleteNote } from './backend.js';
+import { register, writeNote, readFile, updateNote, deleteNote } from './backend.js';
+import { getAllNotes, deleteUser } from './admin.js';
 import express from 'express'
 import bcrypt from 'bcrypt';
 import fs from 'fs/promises';
 import jwt from 'jsonwebtoken';
-
+import { readLogs } from './auditlogger.js';
 import rateLimit from 'express-rate-limit';
 
 
@@ -36,10 +36,57 @@ app.get('/status', (req, res) => {
     });
 });
 
+//registration
+// READ NOTES (auth required). Users can only read their own; admins can read any.
+// GET /notes?username={username}&title={optionalTitle}
+app.get('/notes', authenticateToken, async (req, res) => {
+    try {
+        const { username: requestedUsername, title } = req.query;
+        const requester = req.user; // { username, role }
+
+        // Determine effective username scope
+        let username = requestedUsername || requester.username;
+
+        // If requester is not admin, they can only access their own notes
+        if (requester.role !== 'admin' && username !== requester.username) {
+            return res.status(403).json({ error: 'Forbidden: cannot access other users\' notes' });
+        }
+
+        const result = await readFile('./data.json', 'utf-8', username || null, title || null);
+
+        // If username and title were provided but nothing found
+        if (username && title && !result) {
+            return res.status(404).json({ error: 'Note not found for specified user/title' });
+        }
+
+        // Admin without username: return all users
+        if (!requestedUsername && requester.role === 'admin' && !title) {
+            return res.json({ users: result });
+        }
+
+        // If only username is provided, return that user's notes (array)
+        if (username && !title) {
+            return res.json({ username, notes: result || [] });
+        }
+
+        // username + title returns a single note object
+        return res.json({ username, title, note: result });
+    } catch (err) {
+        console.error('Error reading notes:', err);
+        return res.status(500).json({ error: 'Failed to read notes' });
+    }
+});
+
 app.post('/registration' , async (req,res) => {
     try{
     const {username,password,role} = req.body;
     const hashedPassword = await bcrypt.hash(password, 13);
+
+    const data = await fs.readFile('./data.json', 'utf-8');
+    const users = JSON.parse(data);
+    if (users.find(u => u.username === username)) {
+    return res.status(400).send("Username already exists");
+}
 
     const saveUser = await register(username,hashedPassword,role);
 
@@ -56,7 +103,7 @@ app.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // You’d normally fetch user from DB
+        
         const data = await fs.readFile('./data.json', 'utf-8');
         const users = JSON.parse(data);  
         const user = users.find(u => u.username === username);
@@ -71,8 +118,7 @@ app.post('/login', async (req, res) => {
             { username: user.username, role: user.role },
             JWT_SECRET,
             { expiresIn: "1h" }
-        );
-
+        );    
         res.json({ token });
     } catch (err) {
         console.error("Login Error", err);
@@ -80,16 +126,50 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Middleware to check JWT
-function authenticateToken(req, res, next) {
+app.post('/logout', authenticateToken, async (req, res) => {
+    try {
+        const blacklist = await loadBlacklist();
+        blacklist.push(req.token);
+        await saveBlacklist(blacklist);
+
+        res.status(200).json({ message: "Logged out successfully" });
+    } catch (err) {
+        console.error("Logout Error:", err);
+        res.status(500).json({ error: "Failed to logout" });
+    }
+});
+
+// Load blacklist
+async function loadBlacklist() {
+    try {
+        const data = await fs.readFile('./blacklist.json', 'utf-8');
+        return JSON.parse(data);
+    } catch (err) {
+        return [];
+    }
+}
+
+// Save blacklist
+async function saveBlacklist(blacklist) {
+    await fs.writeFile('./blacklist.json', JSON.stringify(blacklist, null, 2), 'utf-8');
+}
+
+// Middleware to check JWT + blacklist
+async function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Expect "Bearer <token>"
+    const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) return res.sendStatus(401);
 
+    const blacklist = await loadBlacklist();
+    if (blacklist.includes(token)) {
+        return res.status(403).json({ error: "Token has been logged out" });
+    }
+
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) return res.sendStatus(403);
-        req.user = user; // attach user info
+        req.user = user;
+        req.token = token; // store token for logout
         next();
     });
 }
@@ -101,7 +181,7 @@ app.post('/token', (req, res) => {
 
     jwt.verify(token, REFRESH_TOKEN_SECRET, (err, user) => {
         if (err) return res.sendStatus(403);
-        const accessToken = jwt.sign({ name: user.name }, ACCESS_TOKEN_SECRET, { expiresIn: '10s' });
+        const accessToken = jwt.sign({ username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
         res.json({ accessToken });
     });
 });
@@ -118,20 +198,59 @@ process.on('SIGINT', () => {
     process.exit(0);
 });
 
-app.post('/writeNote', async (req,res) =>{
+app.post('/writeNote', authenticateToken ,async (req,res) =>{
     try{
-        const {username,title,content} = req.body;
+        const username = req.user.username;
+        const {title,content} = req.body;
 
         await writeNote(username,title,content);
 
         res.status(200).send("Note saved Successfully");
     } catch (err){
         console.error("error saving note", err);
+        res.status(500).send("Error saving note");
     }
 })
 
-app.put('/notes', async (req, res) => {
-    const { username, title, newContent } = req.body;
+//ADMIN FUNCTION PREVILIGES
+
+//VIEW ALL NOTES
+app.get('/getAllNotes', authenticateToken, authorizeRole('admin'), async (req,res) =>{
+    try{
+         const notes = await getAllNotes();
+         res.status(200).send(notes);
+    } catch (err){
+        res.status(500).send("Error retrieving notes");
+    }
+})
+
+
+//VIEW LOGS
+app.get('/viewLogs',authenticateToken,authorizeRole('admin'), async (req,res) =>{
+    try{
+        const logs = await readLogs();
+        res.status(200).send(logs);
+    } catch (err){
+        res.status(500).send("Error viewing logs");
+        console.error("Error viewing logs",err)
+    }
+})
+
+//DELETE USER 
+app.post('/deleteUser', authenticateToken,authorizeRole('admin'), async (req,res) =>{
+    try{
+        const {username} = req.body;
+        await deleteUser(username);
+        res.status(200).send(`User ${username} deleted successfully`);
+    } catch(err){
+        res.status(500).send("Error deleting user");
+        console.error("error deletin user: ", err)
+    }
+})
+
+app.put('/notes', authenticateToken, async (req, res) => {
+    const { title, newContent } = req.body;
+    const username = req.user.username;
     const updated = await updateNote(username, title, newContent);
     if (updated) res.json({ message: "Note updated successfully", updated });
     else res.status(404).json({ error: "Note not found" });
