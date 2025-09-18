@@ -103,10 +103,7 @@ app.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-<<<<<<< HEAD
-=======
         
->>>>>>> d7159b5e8d214d42b4878b94cc103d63a774457a
         const data = await fs.readFile('./data.json', 'utf-8');
         const users = JSON.parse(data);  
         const user = users.find(u => u.username === username);
