@@ -74,7 +74,7 @@ export async function register(username,password,role) {
         users = JSON.parse(data)
     } catch (err) { 
         if(err.code !== "ENOENT") throw err;
-    }
+        }
     let newUser = {username,password,role};
 
     users.push(newUser);

@@ -5,7 +5,7 @@ export async function getAllNotes() {
     const filepath = './data.json';
     try{
           const data = await fs.readFile(filepath, 'utf-8');
-        const users = JSON.parse(data);
+          const users = JSON.parse(data);
 
     return users.flatMap(user =>
         (user.note || []).map(n => ({

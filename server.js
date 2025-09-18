@@ -118,9 +118,7 @@ app.post('/login', async (req, res) => {
             { username: user.username, role: user.role },
             JWT_SECRET,
             { expiresIn: "1h" }
-        );
-
-    
+        );    
         res.json({ token });
     } catch (err) {
         console.error("Login Error", err);
@@ -261,8 +259,9 @@ app.post('/deleteUser', authenticateToken,authorizeRole('admin'), async (req,res
     }
 })
 
-app.put('/notes', async (req, res) => {
-    const { username, title, newContent } = req.body;
+app.put('/notes', authenticateToken, async (req, res) => {
+    const { title, newContent } = req.body;
+    const username = req.user.username;
     const updated = await updateNote(username, title, newContent);
     if (updated) res.json({ message: "Note updated successfully", updated });
     else res.status(404).json({ error: "Note not found" });
