@@ -7,13 +7,7 @@ import jwt from 'jsonwebtoken';
 import { logEvent } from './auditLogger.js';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-<<<<<<< HEAD
-dotenv.config();            //loads all the variables from your .env file into process.env.
-=======
-dotenv.config();
-
->>>>>>> AUDITOR
-
+dotenv.config();           
 
 
 const app = express();
@@ -249,7 +243,6 @@ function authorizeRole(role){
         next();
     }
 }
-<<<<<<< HEAD
 
 //VIEW ALL NOTES
 app.get('/getAllNotes', authenticateToken, authorizeRole('admin'), async (req,res) =>{
@@ -262,8 +255,6 @@ app.get('/getAllNotes', authenticateToken, authorizeRole('admin'), async (req,re
         res.status(500).send("Error retrieving notes");
     }
 })
-=======
->>>>>>> f03cc5bc9fe922b240d9961c01a7e870834dfe95
 
 
 //VIEW LOGS
