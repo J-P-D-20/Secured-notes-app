@@ -34,6 +34,7 @@
 2025-09-18 - User: boots, Action: DELETE_NOTE, Status: FAILED - dear diary
 2025-09-18 - User: boots, Action: NOTE_DELETE_FAILED, Status: No notes for user
 2025-09-18 - User: boots, Action: DELETE_NOTE, Status: FAILED - test1
+<<<<<<< HEAD
 2025-09-19 - User: jhomary, Action: LOGIN, Status: FAILED - secretOrPrivateKey must have a value
 2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
 2025-09-19 - User: jhomary, Action: LOGOUT, Status: SUCCESS
@@ -44,5 +45,23 @@
 2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
 2025-09-19 - User: jhomary, Action: LOGOUT, Status: FAILED - Cannot destructure property 'refreshToken' of 'req.body' as it is undefined.
 2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+=======
+2025-09-19 - User: Ronald, Action: REGISTERED, Status: Account Created
+2025-09-19 - User: Ronald, Action: REGISTER, Status: SUCCESS
+2025-09-19 - User: boots, Action: REGISTER, Status: FAILED - Username exists
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: NOTE_UPDATE_FAILED, Status: Note "test123" not found
+2025-09-19 - User: jhomary, Action: UPDATE_NOTE, Status: FAILED - test123
+2025-09-19 - User: jhomary, Action: INTEGRITY_FAILED, Status: Note "test" checksum mismatch
+2025-09-19 - User: jhomary, Action: INTEGRITY_FAILED, Status: Note "test1" checksum mismatch
+2025-09-19 - User: jhomary, Action: READ_ALL_NOTES, Status: User notes retrieved
+2025-09-19 - User: ronald, Action: READ_FILE_FAILED, Status: User not found
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: VIEW_LOGS, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: VIEW_LOGS, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGOUT, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+>>>>>>> f03cc5bc9fe922b240d9961c01a7e870834dfe95
 2025-09-19 - User: jhomary, Action: LOGOUT, Status: SUCCESS
 2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS

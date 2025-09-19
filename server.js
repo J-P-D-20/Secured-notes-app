@@ -1,10 +1,10 @@
 import { register, writeNote, readFile, updateNote, deleteNote } from './backend.js';
-import { getAllNotes, deleteUser } from './admin.js';
+import { deleteUser,readLogs } from './admin.js';
 import express from 'express'
 import bcrypt from 'bcrypt';
 import fs from 'fs/promises';
 import jwt from 'jsonwebtoken';
-import { readLogs,logEvent } from './auditLogger.js';
+import { logEvent } from './auditLogger.js';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 dotenv.config();            //loads all the variables from your .env file into process.env.
@@ -62,13 +62,7 @@ app.get('/notes', authenticateToken, async (req, res) => {
             await logEvent(username, "READ_NOTE", `FAILED - Note "${title}" not found`);
             return res.status(404).json({ error: 'Note not found for specified user/title' });
         }
-
-        // Admin without username: return all users
-        await logEvent(username, "READ_NOTES", "SUCCESS");
-        if (!requestedUsername && requester.role === 'admin' && !title) {
-            return res.json({ users: result });
-        }
-
+        
         // If only username is provided, return that user's notes (array)
         if (username && !title) {
             return res.json({ username, notes: result || [] });
@@ -250,6 +244,7 @@ function authorizeRole(role){
         next();
     }
 }
+<<<<<<< HEAD
 
 //VIEW ALL NOTES
 app.get('/getAllNotes', authenticateToken, authorizeRole('admin'), async (req,res) =>{
@@ -262,6 +257,8 @@ app.get('/getAllNotes', authenticateToken, authorizeRole('admin'), async (req,re
         res.status(500).send("Error retrieving notes");
     }
 })
+=======
+>>>>>>> f03cc5bc9fe922b240d9961c01a7e870834dfe95
 
 
 //VIEW LOGS

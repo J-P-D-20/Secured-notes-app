@@ -91,7 +91,7 @@ export async function readFile(filepath, encoding = 'utf-8', username = null, ti
 //creating account
 export async function register(username,password,role) {
     const filepath = './data.json';
-
+    
     try{
         let users = [];
         try{

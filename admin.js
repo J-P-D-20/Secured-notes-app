@@ -1,27 +1,6 @@
 import {promises as fs} from 'fs'
 
 
-export async function getAllNotes() {
-    const filepath = './data.json';
-    try{
-          const data = await fs.readFile(filepath, 'utf-8');
-          const users = JSON.parse(data);
-
-    return users.flatMap(user =>
-        (user.note || []).map(n => ({
-            username: user.username,
-            ...n
-        }))
-    );
-
-    } catch (err){
-        if(err.code == "ENOENT"){
-            return [];
-        }
-    }
-
-}
-
 
 export async function deleteUser(username) {
     const filepath = './data.json';
@@ -41,5 +20,16 @@ export async function deleteUser(username) {
        
     } catch (err){
         console.error("error deleting user: ",err);
+    }
+}
+
+
+export async function readLogs() {
+    const LOG_FILE = './audit.log'
+    try{
+        const logs = await fs.readFile(LOG_FILE,'utf-8'); 
+        return logs
+    } catch (err) {
+        console.error("Error viewing logs: ", err);
     }
 }
