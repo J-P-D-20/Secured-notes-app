@@ -1,8 +1,8 @@
 import {promises as fs} from 'fs';
 import {generateChecksum} from './integrity.js';
 import {verifyChecksum} from './integrity.js';
-import { logEvent } from './auditlogger.js';
-import { log } from 'console';
+import { logEvent } from './auditLogger.js';
+
 
 //readFile function with user and note validation
 export async function readFile(filepath, encoding = 'utf-8', username = null, title = null) {
@@ -16,6 +16,7 @@ export async function readFile(filepath, encoding = 'utf-8', username = null, ti
             
             if (!user) {
                 console.log(`❌ User '${username}' does not exist in data.json`);
+                logEvent(username, 'READ_FILE_FAILED', `User not found`);
                 return null;
             }
             
@@ -27,9 +28,19 @@ export async function readFile(filepath, encoding = 'utf-8', username = null, ti
                 
                 if (!note) {
                     console.log(`❌ Note with title '${title}' does not exist for user '${username}'`);
+                    logEvent(username, 'READ_NOTE_FAILED', `Note "${title}" not found`);
                     return null;
                 }
                 
+                // Verify checksum integrity
+                const isValid = verifyChecksum(note.content, note.checksum);
+                if (!isValid) {
+                    console.log(`⚠️ Integrity check FAILED for note '${title}'`);
+                    logEvent(username, 'INTEGRITY_FAILED', `Note "${title}" checksum mismatch`);
+                } else {
+                    console.log(`✅ Integrity check PASSED for note '${title}'`);
+                }
+
                 console.log(`✅ Note '${title}' found for user '${username}'`);
                 console.log(`📝 Note Content: ${note.content}`);
                 console.log(`📅 Date: ${note.date}`);
@@ -45,19 +56,33 @@ export async function readFile(filepath, encoding = 'utf-8', username = null, ti
                     console.log(`   Content: ${note.content}`);
                     console.log(`   Date: ${note.date}`);
                     console.log(`   Checksum: ${note.checksum}`);
+                    
+                    // Verify each note integrity
+                    const isValid = verifyChecksum(note.content, note.checksum);
+                    if (!isValid) {
+                        console.log(`⚠️ Integrity check FAILED for "${note.title}"`);
+                        logEvent(username, 'INTEGRITY_FAILED', `Note "${note.title}" checksum mismatch`);
+                    } else {
+                        console.log(`✅ Integrity check PASSED for "${note.title}"`);
+                    }
+
                     console.log('---');
                 });
+                logEvent(username, 'READ_ALL_NOTES', `User notes retrieved`);
                 return user.note;
             } else {
                 console.log(`📝 No notes found for user '${username}'`);
+                logEvent(username, 'READ_ALL_NOTES', `No notes found`);
                 return [];
             }
         }
         
         // If no username provided, return all data
+        logEvent('SYSTEM', 'READ_FILE', `All users data retrieved`);
         return users;
     } catch (err) {
         console.error(`Error reading file ${filepath}:`, err);
+        logEvent(username, 'READ_FILE_FAILED', `ERROR - ${err.message}`);
         throw err;
     }
 }
@@ -86,6 +111,7 @@ export async function register(username,password,role) {
     return newUser;
     } catch (err){
         console.error("error saving file", err);
+        logEvent(username, 'REGISTER_FAILED', `ERROR - ${err.message}`);
     }
 }
 
@@ -106,6 +132,7 @@ export async function writeNote(username,title,content) {
         const user = users.find(u => u.username === username);
         if(!user){
             console.log(`user: ${username} not found`);
+            logEvent(username, 'NOTE_CREATION_FAILED', 'User not found');
         }
 
         if(!user.note){
@@ -124,11 +151,12 @@ export async function writeNote(username,title,content) {
         await fs.writeFile(filepath,JSON.stringify(users,null,2));
 
         console.log(`Note successfully saved for ${username}`);
-        logEvent(username, 'CREATED', 'Note Created');
-        return newNote;
+        logEvent(username, 'NOTE_CREATED', `Note "${title}" created`);
+        return newNote; 
 
     } catch (err) {
         console.error("Unable to save note: ", err);
+        logEvent(username, 'NOTE_CREATION_FAILED', `ERROR - ${err.message}`);
     }
 }
 
@@ -142,17 +170,20 @@ export async function updateNote(username, title, newContent) {
 
         if (!user) {
             console.log(`User: ${username} not found`);
+            logEvent(username, 'NOTE_UPDATE_FAILED', 'User not found');
             return null;
         }
 
         if (!user.note) {
             console.log(`No notes found for user: ${username}`);
+            logEvent(username, 'NOTE_UPDATE_FAILED', 'No notes for user');
             return null;
         }
 
         const note = user.note.find(n => n.title === title);
         if (!note) {
             console.log(`Note with title "${title}" not found`);
+            logEvent(username, 'NOTE_UPDATE_FAILED', `Note "${title}" not found`);
             return null;
         }
 
@@ -163,11 +194,13 @@ export async function updateNote(username, title, newContent) {
 
         await fs.writeFile(filepath, JSON.stringify(users, null, 2));
         console.log(`Note "${title}" updated for ${username}`);
-        logEvent(username, 'UPDATED', `Note "${title}" updated`);
+        logEvent(username, 'NOTE_UPDATED', `Note "${title}" updated`);
+
         return note;
 
     } catch (err) {
         console.error("Unable to update note:", err);
+        logEvent(username, 'NOTE_UPDATE_FAILED', `ERROR - ${err.message}`);
         return null;
     }
 }
@@ -182,11 +215,13 @@ export async function deleteNote(username, title) {
 
         if (!user) {
             console.log(`User: ${username} not found`);
+            logEvent(username, 'NOTE_DELETE_FAILED', 'User not found');
             return false;
         }
 
         if (!user.note) {
             console.log(`No notes found for user: ${username}`);
+            logEvent(username, 'NOTE_DELETE_FAILED', 'No notes for user');
             return false;
         }
 
@@ -195,16 +230,18 @@ export async function deleteNote(username, title) {
 
         if (user.note.length === initialLength) {
             console.log(`Note with title "${title}" not found`);
+            logEvent(username, 'NOTE_DELETE_FAILED', `Note "${title}" not found`);
             return false;
         }
 
         await fs.writeFile(filepath, JSON.stringify(users, null, 2));
         console.log(`Note "${title}" deleted for ${username}`);
-        logEvent(username, 'DELETED', `Note "${title}" deleted`);
+        logEvent(username, 'NOTE_DELETED', `Note "${title}" deleted`);
         return true;
 
     } catch (err) {
         console.error("Unable to delete note:", err);
+        logEvent(username, 'NOTE_DELETE_FAILED', `ERROR - ${err.message}`);
         return false;
     }
 }
