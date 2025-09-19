@@ -34,3 +34,15 @@
 2025-09-18 - User: boots, Action: DELETE_NOTE, Status: FAILED - dear diary
 2025-09-18 - User: boots, Action: NOTE_DELETE_FAILED, Status: No notes for user
 2025-09-18 - User: boots, Action: DELETE_NOTE, Status: FAILED - test1
+2025-09-19 - User: jhomary, Action: LOGIN, Status: FAILED - secretOrPrivateKey must have a value
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGOUT, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGOUT, Status: FAILED - Cannot destructure property 'refreshToken' of 'req.body' as it is undefined.
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGOUT, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS

@@ -6,6 +6,8 @@ import fs from 'fs/promises';
 import jwt from 'jsonwebtoken';
 import { readLogs,logEvent } from './auditLogger.js';
 import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
+dotenv.config();            //loads all the variables from your .env file into process.env.
 
 
 
@@ -13,8 +15,8 @@ const app = express();
 app.use(express.json());
 
 // JWT Secret keys (use environment variables in production)
-const JWT_SECRET = process.env.ACCESS_TOKEN_SECRET || 'fallback-secret';
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'fallback-refresh-secret';
+const JWT_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
 // Temporary storage for refresh tokens (for production, store securely)
 let refreshTokens = [];
