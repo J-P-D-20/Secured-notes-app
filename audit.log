@@ -44,3 +44,11 @@
 2025-09-19 - User: jhomary, Action: INTEGRITY_FAILED, Status: Note "test1" checksum mismatch
 2025-09-19 - User: jhomary, Action: READ_ALL_NOTES, Status: User notes retrieved
 2025-09-19 - User: ronald, Action: READ_FILE_FAILED, Status: User not found
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: VIEW_LOGS, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: VIEW_LOGS, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGOUT, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGOUT, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS

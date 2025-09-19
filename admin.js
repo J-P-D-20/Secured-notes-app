@@ -25,6 +25,7 @@ export async function deleteUser(username) {
 
 
 export async function readLogs() {
+    const LOG_FILE = './audit.log'
     try{
         const logs = await fs.readFile(LOG_FILE,'utf-8'); 
         return logs
