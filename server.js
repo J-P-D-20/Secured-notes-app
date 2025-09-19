@@ -118,7 +118,9 @@ app.post('/login', async (req, res) => {
             { username: user.username, role: user.role },
             JWT_SECRET,
             { expiresIn: "1h" }
-        );    
+        );
+
+    
         res.json({ token });
     } catch (err) {
         console.error("Login Error", err);
@@ -174,17 +176,6 @@ async function authenticateToken(req, res, next) {
     });
 }
 
-
-//Admin Checker
-function authorizeRole(role){
-    return(req,res,next) =>{
-        if(req.user.role !== role){
-            return res.sendStatus(403);
-        }
-        next();
-    }
-}
-
 app.post('/token', (req, res) => {
     const { token } = req.body;
     if (!token) return res.sendStatus(401);
@@ -224,6 +215,15 @@ app.post('/writeNote', authenticateToken ,async (req,res) =>{
 })
 
 //ADMIN FUNCTION PREVILIGES
+//Admin Checker
+function authorizeRole(role){
+    return(req,res,next) =>{
+        if(req.user.role !== role){
+            return res.sendStatus(403);
+        }
+        next();
+    }
+}
 
 //VIEW ALL NOTES
 app.get('/getAllNotes', authenticateToken, authorizeRole('admin'), async (req,res) =>{
@@ -259,9 +259,8 @@ app.post('/deleteUser', authenticateToken,authorizeRole('admin'), async (req,res
     }
 })
 
-app.put('/notes', authenticateToken, async (req, res) => {
-    const { title, newContent } = req.body;
-    const username = req.user.username;
+app.put('/notes', async (req, res) => {
+    const { username, title, newContent } = req.body;
     const updated = await updateNote(username, title, newContent);
     if (updated) res.json({ message: "Note updated successfully", updated });
     else res.status(404).json({ error: "Note not found" });
