@@ -36,3 +36,11 @@
 2025-09-18 - User: boots, Action: DELETE_NOTE, Status: FAILED - test1
 2025-09-19 - User: Ronald, Action: REGISTERED, Status: Account Created
 2025-09-19 - User: Ronald, Action: REGISTER, Status: SUCCESS
+2025-09-19 - User: boots, Action: REGISTER, Status: FAILED - Username exists
+2025-09-19 - User: jhomary, Action: LOGIN, Status: SUCCESS
+2025-09-19 - User: jhomary, Action: NOTE_UPDATE_FAILED, Status: Note "test123" not found
+2025-09-19 - User: jhomary, Action: UPDATE_NOTE, Status: FAILED - test123
+2025-09-19 - User: jhomary, Action: INTEGRITY_FAILED, Status: Note "test" checksum mismatch
+2025-09-19 - User: jhomary, Action: INTEGRITY_FAILED, Status: Note "test1" checksum mismatch
+2025-09-19 - User: jhomary, Action: READ_ALL_NOTES, Status: User notes retrieved
+2025-09-19 - User: ronald, Action: READ_FILE_FAILED, Status: User not found

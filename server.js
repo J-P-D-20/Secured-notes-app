@@ -1,10 +1,10 @@
 import { register, writeNote, readFile, updateNote, deleteNote } from './backend.js';
-import { getAllNotes, deleteUser } from './admin.js';
+import { deleteUser,readLogs } from './admin.js';
 import express from 'express'
 import bcrypt from 'bcrypt';
 import fs from 'fs/promises';
 import jwt from 'jsonwebtoken';
-import { readLogs,logEvent } from './auditLogger.js';
+import { logEvent } from './auditLogger.js';
 import rateLimit from 'express-rate-limit';
 
 
@@ -60,13 +60,7 @@ app.get('/notes', authenticateToken, async (req, res) => {
             await logEvent(username, "READ_NOTE", `FAILED - Note "${title}" not found`);
             return res.status(404).json({ error: 'Note not found for specified user/title' });
         }
-
-        // Admin without username: return all users
-        await logEvent(username, "READ_NOTES", "SUCCESS");
-        if (!requestedUsername && requester.role === 'admin' && !title) {
-            return res.json({ users: result });
-        }
-
+        
         // If only username is provided, return that user's notes (array)
         if (username && !title) {
             return res.json({ username, notes: result || [] });
@@ -247,17 +241,6 @@ function authorizeRole(role){
         next();
     }
 }
-//VIEW ALL NOTES
-app.get('/getAllNotes', authenticateToken, authorizeRole('admin'), async (req,res) =>{
-    try{
-         const notes = await getAllNotes();
-         await logEvent(req.user.username, "GET_ALL_NOTES", "SUCCESS");
-         res.status(200).send(notes);
-    } catch (err){
-        await logEvent(req.user.username, "GET_ALL_NOTES", `FAILED - ${err.message}`);
-        res.status(500).send("Error retrieving notes");
-    }
-})
 
 
 //VIEW LOGS

@@ -15,12 +15,5 @@ export async function logEvent(username, action, status = "") {
 }
 
 
-export async function readLogs() {
-    try{
-        const logs = await fs.readFile(LOG_FILE,'utf-8'); 
-        return logs
-    } catch (err) {
-        console.error("Error viewing logs: ", err);
-    }
-}
+
 
