@@ -7,7 +7,12 @@ import jwt from 'jsonwebtoken';
 import { logEvent } from './auditLogger.js';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+<<<<<<< HEAD
 dotenv.config();            //loads all the variables from your .env file into process.env.
+=======
+dotenv.config();
+
+>>>>>>> AUDITOR
 
 
 
